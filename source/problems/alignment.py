@@ -3,7 +3,7 @@ import random
 from pathlib import Path
 
 class AlignmentProblem(BaseProblem):
-    def __init__(self, config_file=None):
+    def __init__(self, config_file=None) -> None:
         super().__init__(config_file)
         self.alphabet = self.config.get("alphabet", "ACGT")
         self.match_score = self.config.get("match_score", 1)
@@ -13,24 +13,32 @@ class AlignmentProblem(BaseProblem):
         self.sequence_2 = ""
         self.result = None
 
-    def generate_inputs(self):
+    def generate_inputs(self) -> None:
         size_1 = self.config.get("sequence_size_1", 10)
         size_2 = self.config.get("sequence_size_2", 10)
         self.sequence_1 = "".join(random.choice(self.alphabet) for _ in range(size_1))
         self.sequence_2 = "".join(random.choice(self.alphabet) for _ in range(size_2))
         print(f"Generated sequences: {self.sequence_1}, {self.sequence_2}")
 
-    def save_inputs(self, save_path_1, save_path_2):
-        Path(save_path_1).parent.mkdir(parents=True, exist_ok=True)
-        Path(save_path_2).parent.mkdir(parents=True, exist_ok=True)
+    def save_inputs(self) -> None:
+        save_path = Path(self.store_dir) / "input.txt"
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(save_path, "w+") as file:
+            file.write(f"Sequence 1: {self.sequence_1}\n")
+            file.write(f"Sequence 2: {self.sequence_2}\n")
+        print(f"Input stored in {save_path}")
 
-        with open(save_path_1, "w+") as file_1:
+    def save_inputs_for_fpga(self) -> None:
+        save_path = Path(self.store_dir) / "input.mem"
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(save_path, "w+") as file:
+            file.write(f"{len(self.sequence_1):016b}\n")
+            file.write(f"{len(self.sequence_2):016b}\n")
             for symbol in self.sequence_1:
-                file_1.write(f"{ord(symbol):016b}\n")
-
-        with open(save_path_2, "w+") as file_2:
+                file.write(f"{ord(symbol):016b}\n")
             for symbol in self.sequence_2:
-                file_2.write(f"{ord(symbol):016b}\n")
+                file.write(f"{ord(symbol):016b}\n")
+        print(f"Input stored for FPGA in {save_path}")
 
     def solve_problem(self) -> int:
         rows = len(self.sequence_1)
@@ -46,8 +54,16 @@ class AlignmentProblem(BaseProblem):
         self.result = scoring_matrix[rows][columns]
         return self.result
 
-    def save_result(self, save_path):
+    def save_result(self) -> None:
+        save_path = Path(self.store_dir) / "expected.txt"
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(save_path, "w+") as file:
+            file.write(f"Max score: {self.result}\n")
+        print(f"Solution stored in {save_path}")
+
+    def save_result_for_fpga(self) -> None:
+        save_path = Path(self.store_dir) / "expected.mem"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w+") as file:
             file.write(f"{self.result:016b}\n")
-        print(f"Solution stored in {save_path}")
+        print(f"Solution stored for FPGA in {save_path}")

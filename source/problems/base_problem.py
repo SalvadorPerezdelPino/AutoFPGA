@@ -13,9 +13,25 @@ class BaseProblem(ABC):
         with open(json_file, "r") as file:
             self.config = json.load(file)
 
+    def run(self, store_dir):
+        self.store_dir = store_dir
+        self.generate_inputs()
+        self.save_inputs()
+        self.save_inputs_for_fpga()
+        self.solve()
+        self.save_result()
+        self.save_result_for_fpga()
     
     @abstractmethod
     def generate_inputs(self):
+        pass
+
+    @abstractmethod
+    def save_inputs(self):
+        pass
+
+    @abstractmethod
+    def save_inputs_for_fpga(self):
         pass
 
     @abstractmethod
@@ -23,5 +39,9 @@ class BaseProblem(ABC):
         pass
 
     @abstractmethod
-    def save_result(self, save_path):
+    def save_result(self):
+        pass
+
+    @abstractmethod
+    def save_result_for_fpga(self):
         pass
