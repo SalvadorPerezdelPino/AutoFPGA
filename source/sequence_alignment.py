@@ -1,61 +1,53 @@
+from base_problem import BaseProblem
 import random
-import json
+from pathlib import Path
 
-class Alignment():
-    def __init__(self):
-        self.sequence_1 = None
-        self.sequence_2 = None
-        self.gap_penalty = -1
-        self.scoring_matrix = []
-        self.match_score = 1
+class AlignmentProblem(BaseProblem):
+    def __init__(self, config_file=None):
+        super().__init__(config_file)
+        self.alphabet = self.config.get("alphabet", "ACGT")
+        self.match_score = self.config.get("match_score", 1)
+        self.mismatch_penalty = self.config.get("mismatch_penalty", -1)
+        self.gap_penalty = self.config.get("gap_penalty", -2)
+        self.sequence_1 = ""
+        self.sequence_2 = ""
+        self.result = None
 
-    def load_json_data(self, json_file):
-        with open(json_file, "r") as file:
-            data = json.load(json_file)
-        
-        self.gap_penalty = data
-        self.match_score = data.get("match_score", 1)
-        self.alphabet = data.get("alphabet", "")
+    def generate_inputs(self):
+        size_1 = self.config.get("sequence_size_1", 10)
+        size_2 = self.config.get("sequence_size_2", 10)
+        self.sequence_1 = "".join(random.choice(self.alphabet) for _ in range(size_1))
+        self.sequence_2 = "".join(random.choice(self.alphabet) for _ in range(size_2))
+        print(f"Generated sequences: {self.sequence_1}, {self.sequence_2}")
 
+    def save_inputs(self, save_path_1, save_path_2):
+        Path(save_path_1).parent.mkdir(parents=True, exist_ok=True)
+        Path(save_path_2).parent.mkdir(parents=True, exist_ok=True)
 
-    def solve_problem(self, sequence_1, sequence_2) -> int:
-        rows = len(sequence_1)
-        columns = len(sequence_2)
+        with open(save_path_1, "w+") as file_1:
+            for symbol in self.sequence_1:
+                file_1.write(f"{ord(symbol):016b}\n")
+
+        with open(save_path_2, "w+") as file_2:
+            for symbol in self.sequence_2:
+                file_2.write(f"{ord(symbol):016b}\n")
+
+    def solve_problem(self) -> int:
+        rows = len(self.sequence_1)
+        columns = len(self.sequence_2)
+
         scoring_matrix = [[0] * (columns + 1) for _ in range (rows + 1)]
         for i in range(1, rows + 1):
             for j in range(1, columns + 1):
-                if sequence_1[i - 1] == sequence_2[j - 1]:
+                if self.sequence_1[i - 1] == self.sequence_2[j - 1]:
                     scoring_matrix[i][j] = scoring_matrix[i - 1][j - 1] + self.match_score
                 else:
-                    scoring_matrix[i][j] = max(scoring_matrix[i - 1][j], scoring_matrix[i][j - 1])
-        return scoring_matrix[rows][columns]
-        
+                    scoring_matrix[i][j] = max(scoring_matrix[i - 1][j] + self.gap_penalty, scoring_matrix[i][j - 1] + self.gap_penalty)
+        self.result = scoring_matrix[rows][columns]
+        return self.result
 
-    def generate_inputs(self):
-        size_1 = 10
-        size_2 = 10
-        sequence_1 = []
-        sequence_2 = []
-        alphabet = "ACGT"
-
-        for _ in range(size_1):
-            sequence_1.append(random.randint(0, len(alphabet)))
-
-        for _ in range(size_2):
-            sequence_2.append(random.randint(0, len(alphabet)))
-
-        with open("", "w+") as file1:
-            for symbol in sequence_1:
-                file1.write(f"{symbol:016b}\n")
-        
-        with open("", "w+") as file2:
-            for symbol in sequence_2:
-                file2.write(f"{symbol:016b}\n")
-
-    def generate_solution(self):
-        a = None
-        b = None
-        result = self.solve_problem(a, b)
-        
-        with open("", "w+") as file:
-            file.write(result)
+    def save_result(self, save_path):
+        Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(save_path, "w+") as file:
+            file.write(f"{self.result:016b}\n")
+        print(f"Solution stored in {save_path}")

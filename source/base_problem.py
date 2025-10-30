@@ -23,5 +23,5 @@ class BaseProblem(ABC):
         pass
 
     @abstractmethod
-    def save_result(self):
+    def save_result(self, save_path):
         pass
