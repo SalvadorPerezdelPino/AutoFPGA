@@ -4,10 +4,12 @@ import json
 class BaseProblem(ABC):
     """Interface for any problem"""
 
-    def __init__(self, config_file=None):
+    def __init__(self, config=None):
         self.config = {}
-        if config_file:
-            self.load_config(config_file)
+        if isinstance(config, str):
+            self.load_config(config)
+        elif isinstance(config, dict):
+            self.config = config 
 
     def load_config(self, json_file):
         with open(json_file, "r") as file:
