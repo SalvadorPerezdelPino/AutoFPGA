@@ -14,8 +14,8 @@ class AlignmentProblem(BaseProblem):
         self.result = None
 
     def generate_inputs(self) -> None:
-        size_1 = self.config.get("sequence_size_1", 10)
-        size_2 = self.config.get("sequence_size_2", 10)
+        size_1 = self.config.get("sequence_1_size", 10)
+        size_2 = self.config.get("sequence_2_size", 10)
         self.sequence_1 = "".join(random.choice(self.alphabet) for _ in range(size_1))
         self.sequence_2 = "".join(random.choice(self.alphabet) for _ in range(size_2))
         print(f"Generated sequences: {self.sequence_1}, {self.sequence_2}\n")
@@ -47,10 +47,11 @@ class AlignmentProblem(BaseProblem):
         scoring_matrix = [[0] * (columns + 1) for _ in range (rows + 1)]
         for i in range(1, rows + 1):
             for j in range(1, columns + 1):
-                if self.sequence_1[i - 1] == self.sequence_2[j - 1]:
-                    scoring_matrix[i][j] = scoring_matrix[i - 1][j - 1] + self.match_score
-                else:
-                    scoring_matrix[i][j] = max(scoring_matrix[i - 1][j] + self.gap_penalty, scoring_matrix[i][j - 1] + self.gap_penalty)
+                diagonal_score = self.match_score if self.sequence_1[i - 1] == self.sequence_2[j - 1] else self.mismatch_penalty
+                scoring_matrix[i][j] = max(
+                        scoring_matrix[i - 1][j - 1] + diagonal_score, 
+                        scoring_matrix[i - 1][j] + self.gap_penalty, 
+                        scoring_matrix[i][j - 1] + self.gap_penalty)
         self.result = scoring_matrix[rows][columns]
         return self.result
 
