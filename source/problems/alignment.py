@@ -26,7 +26,7 @@ class AlignmentProblem(BaseProblem):
         with open(save_path, "w+") as file:
             file.write(f"Sequence 1: {self.sequence_1}\n")
             file.write(f"Sequence 2: {self.sequence_2}\n")
-        print(f"Input stored in {save_path}\n")
+        #print(f"Input stored in {save_path}\n")
 
     def save_inputs_for_fpga(self) -> None:
         save_path = Path(self.store_dir) / "input.mem"
@@ -38,7 +38,7 @@ class AlignmentProblem(BaseProblem):
                 file.write(f"{ord(symbol):016b}\n")
             for symbol in self.sequence_2:
                 file.write(f"{ord(symbol):016b}\n")
-        print(f"Input stored for FPGA in {save_path}\n")
+        #print(f"Input stored for FPGA in {save_path}\n")
 
     def solve(self) -> int:
         rows = len(self.sequence_1)
@@ -60,11 +60,11 @@ class AlignmentProblem(BaseProblem):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w+") as file:
             file.write(f"Max score: {self.result}\n")
-        print(f"Solution stored in {save_path}\n")
+        #print(f"Solution stored in {save_path}\n")
 
     def save_result_for_fpga(self) -> None:
         save_path = Path(self.store_dir) / "expected.mem"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w+") as file:
             file.write(f"{self.result &0xFFFF:016b}\n")
-        print(f"Solution stored for FPGA in {save_path}\n")
+        #print(f"Solution stored for FPGA in {save_path}\n")

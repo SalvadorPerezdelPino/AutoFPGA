@@ -25,7 +25,7 @@ class KnapsackProblem(BaseProblem):
             file.write(f"Capacity: {self.capacity}\n")
             file.write(f"Weights: {self.weights}\n")
             file.write(f"Values: {self.values}\n")
-        print(f"Input stored in {save_path}\n")
+        #print(f"Input stored in {save_path}\n")
 
     def save_inputs_for_fpga(self):
         save_path = Path(self.store_dir) / f"input_{self.id}.mem"
@@ -37,7 +37,7 @@ class KnapsackProblem(BaseProblem):
                 file.write(f"{w:016b}\n")
             for v in self.values:
                 file.write(f"{v:016b}\n")
-        print(f"Input stored in {save_path}\n")
+        #print(f"Input stored in {save_path}\n")
 
     def solve(self):
         dp = [[0] * (self.capacity + 1) for _ in range(self.items + 1)]
@@ -57,11 +57,11 @@ class KnapsackProblem(BaseProblem):
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w") as f:
             f.write(f"Max value: {self.result}\n")
-        print(f"Result stored in {save_path}\n")
+        #print(f"Result stored in {save_path}\n")
 
     def save_result_for_fpga(self):
         save_path = Path(self.store_dir) / f"expected_{self.id}.mem"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w") as f:
             f.write(f"{self.result:016b}\n")
-        print(f"Result stored in {save_path}\n")
+        #print(f"Result stored in {save_path}\n")
