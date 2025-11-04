@@ -14,6 +14,9 @@ class BaseProblem(ABC):
     def load_config(self, json_file):
         with open(json_file, "r") as file:
             self.config = json.load(file)
+    
+    def update_id(self, new_id):
+        self.id = new_id
 
     def run(self, store_dir):
         self.store_dir = store_dir

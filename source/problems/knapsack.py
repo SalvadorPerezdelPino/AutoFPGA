@@ -13,12 +13,12 @@ class KnapsackProblem(BaseProblem):
 
     def generate_inputs(self):
         self.values = [random.randint(1, 100) for _ in range(self.items)]
-        self.weights = [random.randint(self.capacity/4, self.capacity/2) for _ in range(self.items)]
+        self.weights = [random.randint(int(self.capacity/4), int(self.capacity/2)) for _ in range(self.items)]
         print(f"Values: {self.values}")
         print(f"Weights: {self.weights}")
 
     def save_inputs(self) -> None:
-        save_path = Path(self.store_dir) / "input.txt"
+        save_path = Path(self.store_dir) / f"input_{self.id}.txt"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w+") as file:
             file.write(f"Number of items: {self.items}\n")
@@ -28,7 +28,7 @@ class KnapsackProblem(BaseProblem):
         print(f"Input stored in {save_path}\n")
 
     def save_inputs_for_fpga(self):
-        save_path = Path(self.store_dir) / "input.mem"
+        save_path = Path(self.store_dir) / f"input_{self.id}.mem"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w+") as file:
             file.write(f"{self.items:016b}\n")
@@ -53,14 +53,14 @@ class KnapsackProblem(BaseProblem):
         return self.result
 
     def save_result(self):
-        save_path = Path(self.store_dir) / "expected.txt"
+        save_path = Path(self.store_dir) / f"expected_{self.id}.txt"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w") as f:
             f.write(f"Max value: {self.result}\n")
         print(f"Result stored in {save_path}\n")
 
     def save_result_for_fpga(self):
-        save_path = Path(self.store_dir) / "expected.mem"
+        save_path = Path(self.store_dir) / f"expected_{self.id}.mem"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w") as f:
             f.write(f"{self.result:016b}\n")
