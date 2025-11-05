@@ -19,10 +19,10 @@ class ExperimentManager:
     def __init__(self, config_file: str, verbose):
         with open(config_file, "r") as file:
             self.config = json.load(file)
-        self.problem_name = self.config.get("problem")
-        self.instances = self.config.get("instances", 1)
-        self.verbose = verbose
-        self.current_experiment_dir = None
+        self.problem_name: str = self.config.get("problem")
+        self.instances: int = self.config.get("instances", 1)
+        self.verbose: bool = verbose
+        self.current_experiment_dir: Path = None
 
     def get_problem_class(self):
         if self.problem_name not in PROBLEM_CLASSES:
@@ -118,12 +118,34 @@ class ExperimentManager:
             self.current_experiment_dir = DATA_DIR / device / "experiments" / self.problem_name / "single" / subdir
             self.get_max_frequency(device)
             self.build_simulation(device)
-            for instance in range(self.instances):
+            for instance in range(1, self.instances+1):
                 instance_dir = self.current_experiment_dir / f"instance_{instance}"
                 problem.update_id(instance)
                 problem.run(instance_dir)
                 print(f"Simulating instance {instance} of {self.instances}")
                 self.run_simulation(device, instance, instance_dir.absolute().as_posix().replace('\\', '/'))
 
-    def sweep(self):
+            # Create summary.csv
+            first_instance_dir = self.current_experiment_dir / "instance_1"
+            first_csv = list(first_instance_dir.absolute().glob("*.csv"))
+            summary_df = pd.read_csv(first_csv[0], sep=';', decimal=',')
+            summary_csv_path = self.current_experiment_dir / "summary.csv"
+            summary_csv_path = summary_csv_path.absolute()
+
+            for instance in range(2, self.instances+1):
+                instance_dir = self.current_experiment_dir / f"instance_{instance}"
+                instance_csv = list(instance_dir.absolute().glob("*.csv"))
+                instance_df = pd.read_csv(instance_csv[0], header=0, sep=';', decimal=',')
+                summary_df = pd.concat([summary_df, instance_df], ignore_index=True)
+
+            summary_df.to_csv(summary_csv_path, index=False, sep=';', decimal=',')
+            avg_csv_path = self.current_experiment_dir / "average.csv"
+            # Create average.csv
+            summary_df.drop(columns=["test_id", "expected_solution", "hw_solution"], axis=1, inplace=True)
+            summary_df_mean = summary_df.mean()
+            avg_df = pd.DataFrame([summary_df_mean])
+            avg_df = avg_df.round(4)
+            avg_df.to_csv(avg_csv_path, index=False, sep=';', decimal=',')
+
+    def sweep(self, params: dict):
         pass
