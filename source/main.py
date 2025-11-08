@@ -5,17 +5,15 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Automatizador de test de la mochila")
-    parser.add_argument("--cpu", type=str, default="multicycle")
     parser.add_argument("--compile", action="store_true")
-    parser.add_argument("--graph", action="store_true")
     parser.add_argument("--config", default="../config/config.json")
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
     if not os.path.exists(args.config):
-        print("Error: No existe archivo de configuración")
-        exit()
+        print("Error: config file not found.")
+        exit(1)
 
     if args.compile or args.all:
         compiler = QuartusCompiler(config_file=args.config, verbose=args.verbose)
