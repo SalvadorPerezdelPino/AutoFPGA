@@ -24,6 +24,9 @@ class AlignmentProblem(BaseProblem):
         save_path = Path(self.store_dir) / f"input_{self.id}.txt"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w+") as file:
+            file.write(f"Match score: {self.match_score}\n")
+            file.write(f"Mismatch score: {self.mismatch_penalty}\n")
+            file.write(f"Gap penalty: {self.gap_penalty}\n")
             file.write(f"Sequence 1: {self.sequence_1}\n")
             file.write(f"Sequence 2: {self.sequence_2}\n")
         #print(f"Input stored in {save_path}\n")
@@ -32,9 +35,9 @@ class AlignmentProblem(BaseProblem):
         save_path = Path(self.store_dir) / f"input_{self.id}.mem"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w+") as file:
-            file.write(f"{self.match_score}\n")
-            file.write(f"{self.mismatch_penalty}\n")
-            file.write(f"{self.gap_penalty}\n")
+            file.write(f"{self.match_score & 0xFFFF:016b}\n")
+            file.write(f"{self.mismatch_penalty & 0xFFFF:016b}\n")
+            file.write(f"{self.gap_penalty & 0xFFFF:016b}\n")
             file.write(f"{len(self.sequence_1):016b}\n")
             file.write(f"{len(self.sequence_2):016b}\n")
             for symbol in self.sequence_1:
