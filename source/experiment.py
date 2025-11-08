@@ -96,10 +96,12 @@ class ExperimentManager:
     
     def run_simulation(self, device, id, dir):
         #TODO: Improve path with Path()
+        wlf_path = dir + "/sim.wlf"
+        print(wlf_path)
         if self.verbose:
-            result = subprocess.run(["vsim", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}", "-do", "run -all; quit -f"], cwd=f"../data/{device}/simulation/compiled/")
+            result = subprocess.run(["vsim", "-voptargs=+acc", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}", "-wlf", wlf_path, "-do", "../scripts/run.tcl"], cwd=f"../data/{device}/simulation/compiled/")
         else:
-            result = subprocess.run(["vsim", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}",  "-do", "run -all; quit -f"], cwd=f"../data/{device}/simulation/compiled/", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            result = subprocess.run(["vsim", "-voptargs=+acc", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}", "-wlf", wlf_path, "-do", "../scripts/run.tcl"], cwd=f"../data/{device}/simulation/compiled/", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
         if result.returncode != 0:
             print("Error while simulating.")
@@ -132,11 +134,12 @@ class ExperimentManager:
             summary_csv_path = self.current_experiment_dir / "summary.csv"
             summary_csv_path = summary_csv_path.absolute()
 
-            for instance in range(2, self.instances+1):
-                instance_dir = self.current_experiment_dir / f"instance_{instance}"
-                instance_csv = list(instance_dir.absolute().glob("*.csv"))
-                instance_df = pd.read_csv(instance_csv[0], header=0, sep=';', decimal=',')
-                summary_df = pd.concat([summary_df, instance_df], ignore_index=True)
+            if self.instances > 1:
+                for instance in range(2, self.instances+1):
+                    instance_dir = self.current_experiment_dir / f"instance_{instance}"
+                    instance_csv = list(instance_dir.absolute().glob("*.csv"))
+                    instance_df = pd.read_csv(instance_csv[0], header=0, sep=';', decimal=',')
+                    summary_df = pd.concat([summary_df, instance_df], ignore_index=True)
 
             summary_df.to_csv(summary_csv_path, index=False, sep=';', decimal=',')
             avg_csv_path = self.current_experiment_dir / "average.csv"
