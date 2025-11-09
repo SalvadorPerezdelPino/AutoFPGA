@@ -6,6 +6,7 @@ from datetime import datetime
 import subprocess
 import re
 import pandas as pd
+from compiler import QuartusCompiler
 
 PROBLEM_CLASSES = {
     "knapsack": KnapsackProblem,
@@ -23,7 +24,11 @@ class ExperimentManager:
         self.instances: int = self.config.get("instances", 1)
         self.verbose: bool = verbose
         self.current_experiment_dir: Path = None
+        self.compiler = QuartusCompiler(config_file=config_file, verbose=self.verbose)
 
+    def compile(self):
+        self.compiler.compile_all()
+        
     def get_problem_class(self):
         if self.problem_name not in PROBLEM_CLASSES:
             print(f"Unknown problem: {self.problem_name}")

@@ -15,11 +15,11 @@ if __name__ == "__main__":
         print("Error: config file not found.")
         exit(1)
 
-    if args.compile or args.all:
-        compiler = QuartusCompiler(config_file=args.config, verbose=args.verbose)
-        compiler.compile_all()
-
     manager = ExperimentManager(config_file=args.config, verbose=args.verbose)
+
+    if args.compile or args.all:
+        manager.compile()
+
     manager.run_single(manager.config)
 
 
