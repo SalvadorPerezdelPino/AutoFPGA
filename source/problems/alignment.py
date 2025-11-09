@@ -82,10 +82,7 @@ class AlignmentProblem(BaseProblem):
             "match_score": self.match_score,
             "mismatch_penalty": self.mismatch_penalty,
             "gap_penalty": self.gap_penalty,
-            "size_1" : len(self.sequence_1),
-            "size_2": len(self.sequence_2),
-            "sequence_1": self.sequence_1,
-            "sequence_2": self.sequence_2,
-            "result": self.result
+            "sequence_1_size" : len(self.sequence_1),
+            "sequence_2_size": len(self.sequence_2)
         }
         return data

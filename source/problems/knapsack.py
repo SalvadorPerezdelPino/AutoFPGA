@@ -70,9 +70,6 @@ class KnapsackProblem(BaseProblem):
         data = {
             "problem_name" : "knapsack",
             "capacity" : self.capacity,
-            "items": self.items,
-            "values": self.values,
-            "weights": self.weights,
-            "result": self.result
+            "items": self.items
         }
         return data

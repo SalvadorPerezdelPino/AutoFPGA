@@ -7,6 +7,7 @@ import subprocess
 import re
 import pandas as pd
 from compiler import QuartusCompiler
+import random
 
 PROBLEM_CLASSES = {
     "knapsack": KnapsackProblem,
@@ -20,8 +21,9 @@ class ExperimentManager:
     def __init__(self, config_file: str, verbose):
         with open(config_file, "r") as file:
             self.config = json.load(file)
-        self.problem_name: str = self.config.get("problem")
+        self.problem_name: str = self.config.get("problem_name")
         self.instances: int = self.config.get("instances", 1)
+        self.seed: int = self.config.get("seed", 1234)
         self.verbose: bool = verbose
         self.current_experiment_dir: Path = None
         self.compiler = QuartusCompiler(config_file=config_file, verbose=self.verbose)
@@ -36,7 +38,7 @@ class ExperimentManager:
         return PROBLEM_CLASSES[self.problem_name]
 
     def get_single_subdir(self, params):
-        var_keys = [k for k in params if k not in ("devices", "problem", "output_dir", "sweep", "seed", "gap_penalty", "mismatch_penalty", "alphabet", "match_score", "instances")]
+        var_keys = [k for k in params if k not in ("devices", "problem_name", "output_dir", "sweep", "seed", "gap_penalty", "mismatch_penalty", "alphabet", "match_score", "instances")]
         var_part = "_".join(f"{k}{params[k]}" for k in var_keys)
 
         date_part = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -121,10 +123,12 @@ class ExperimentManager:
         devices = params.get("devices", {})
 
         for device in devices:
+            random.seed(self.seed)
             print(f"[{device.upper()}]")
             self.current_experiment_dir = DATA_DIR / device / "experiments" / self.problem_name / "single" / subdir
             self.get_max_frequency(device)
             self.build_simulation(device)
+            
             for instance in range(1, self.instances+1):
                 instance_dir = self.current_experiment_dir / f"instance_{instance}"
                 problem.update_id(instance)
@@ -154,6 +158,16 @@ class ExperimentManager:
             avg_df = pd.DataFrame([summary_df_mean])
             avg_df = avg_df.round(4)
             avg_df.to_csv(avg_csv_path, index=False, sep=';', decimal=',')
+
+            json_data = {
+                "datetime": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "seed": self.seed,
+                "instances": self.instances,
+                "problem": problem.to_dict()
+            }
+
+            with open(self.current_experiment_dir / "info.json", "w+") as file:
+                file.write(json.dumps(json_data, indent=4))
 
     def sweep(self, params: dict):
         pass
