@@ -1,5 +1,5 @@
 from compiler import *
-from experiment import *
+from manager import *
 import os
 import argparse
 
