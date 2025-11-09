@@ -65,3 +65,14 @@ class KnapsackProblem(BaseProblem):
         with open(save_path, "w") as f:
             f.write(f"{self.result:016b}\n")
         #print(f"Result stored in {save_path}\n")
+
+    def to_dict(self) -> dict:
+        data = {
+            "problem_name" : "knapsack",
+            "capacity" : self.capacity,
+            "items": self.items,
+            "values": self.values,
+            "weights": self.weights,
+            "result": self.result
+        }
+        return data

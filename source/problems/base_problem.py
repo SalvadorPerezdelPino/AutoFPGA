@@ -50,3 +50,7 @@ class BaseProblem(ABC):
     @abstractmethod
     def save_result_for_fpga(self):
         pass
+
+    @abstractmethod
+    def to_dict(self) -> dict:
+        pass

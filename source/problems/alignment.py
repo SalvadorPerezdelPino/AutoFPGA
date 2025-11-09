@@ -74,3 +74,18 @@ class AlignmentProblem(BaseProblem):
         with open(save_path, "w+") as file:
             file.write(f"{self.result &0xFFFF:016b}\n")
         #print(f"Solution stored for FPGA in {save_path}\n")
+
+    def to_dict(self) -> dict:
+        data = {
+            "problem_name" : "alignment",
+            "alphabet": self.alphabet,
+            "match_score": self.match_score,
+            "mismatch_penalty": self.mismatch_penalty,
+            "gap_penalty": self.gap_penalty,
+            "size_1" : len(self.sequence_1),
+            "size_2": len(self.sequence_2),
+            "sequence_1": self.sequence_1,
+            "sequence_2": self.sequence_2,
+            "result": self.result
+        }
+        return data
