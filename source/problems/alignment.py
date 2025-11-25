@@ -51,6 +51,11 @@ class AlignmentProblem(BaseProblem):
         columns = len(self.sequence_2)
 
         scoring_matrix = [[0] * (columns + 1) for _ in range (rows + 1)]
+        for j in range(1, columns + 1):
+            scoring_matrix[0][j] = self.gap_penalty * j
+        for i in range(1, rows + 1):
+            scoring_matrix[i][0] = self.gap_penalty * i
+
         for i in range(1, rows + 1):
             for j in range(1, columns + 1):
                 diagonal_score = self.match_score if self.sequence_1[i - 1] == self.sequence_2[j - 1] else self.mismatch_penalty
