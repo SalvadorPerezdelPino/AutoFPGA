@@ -3,6 +3,7 @@ import random
 from pathlib import Path
 
 class AlignmentProblem(BaseProblem):
+    SWEEP_PARAMS = ["sequence_1_size", "sequence_2_size"]
     def __init__(self, config_file=None) -> None:
         super().__init__(config_file)
         self.alphabet = self.config.get("alphabet", "ACGT")

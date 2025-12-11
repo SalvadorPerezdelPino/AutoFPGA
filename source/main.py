@@ -20,7 +20,7 @@ if __name__ == "__main__":
     if args.compile or args.all:
         manager.compile()
 
-    manager.run_single(manager.config)
+    manager.run_experiment()
 
 
 

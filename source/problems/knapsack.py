@@ -3,6 +3,7 @@ import random
 from pathlib import Path
 
 class KnapsackProblem(BaseProblem):
+    SWEEP_PARAMS = ["capacity", "items"]
     def __init__(self, config_file=None) -> None:
         super().__init__(config_file)
         self.capacity = config_file.get("capacity", 50)

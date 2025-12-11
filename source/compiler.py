@@ -7,7 +7,7 @@ class QuartusCompiler:
         with open(config_file, "r") as file:
             self.config = json.load(file)
 
-        self.targets = self.config.get("devices", {})
+        self.targets = self.config["experiments"]["devices_to_experiment"]
         self.verbose = verbose
 
     def synthetize(self) -> None:
@@ -93,6 +93,7 @@ class QuartusCompiler:
 
     def compile_all(self) -> None:
         for device in self.targets:
+            print(f"Compiling {device}...")
             project_dir = Path(f"../../FPGA/DE10/{device}/synthesis")
             qpf_files = list(project_dir.glob("*.qpf"))
             project_path = qpf_files[0]
