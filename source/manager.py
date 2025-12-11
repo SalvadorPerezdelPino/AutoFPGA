@@ -23,7 +23,9 @@ class ExperimentManager:
             self.config = json.load(file)
         self.problem_name: str = self.config.get("problem_name")
         self.instances: int = self.config.get("instances", 1)
-        self.seed: int = self.config.get("seed", 1234)
+        self.seed: int = self.config.get("seed", None)
+        if self.seed is None:
+            self.seed = int(datetime.now().timestamp())
         self.verbose: bool = verbose
         self.current_experiment_dir: Path = None
         self.compiler = QuartusCompiler(config_file=config_file, verbose=self.verbose)
@@ -106,9 +108,9 @@ class ExperimentManager:
         wlf_path = dir + "/sim.wlf"
         print(wlf_path)
         if self.verbose:
-            result = subprocess.run(["vsim", "-voptargs=+acc", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}", "-wlf", wlf_path, "-do", "../scripts/run.tcl"], cwd=f"../data/{device}/simulation/compiled/")
+            result = subprocess.run(["vsim", "-voptargs=+acc=npr", "-L", "altera_mf_ver", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}", "-wlf", wlf_path, "-do", "../scripts/run.tcl"], cwd=f"../data/{device}/simulation/compiled/")
         else:
-            result = subprocess.run(["vsim", "-voptargs=+acc", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}", "-wlf", wlf_path, "-do", "../scripts/run.tcl"], cwd=f"../data/{device}/simulation/compiled/", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            result = subprocess.run(["vsim", "-voptargs=+acc=npr", "-L", "altera_mf_ver", "-c", "work.tb_cpu", f"+ID={id}", f"+DIR={dir}", "-wlf", wlf_path, "-do", "../scripts/run.tcl"], cwd=f"../data/{device}/simulation/compiled/", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
         if result.returncode != 0:
             print("Error while simulating.")
