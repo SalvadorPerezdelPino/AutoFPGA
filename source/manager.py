@@ -9,10 +9,16 @@ import pandas as pd
 from compiler import QuartusCompiler
 import random
 from itertools import product
+import matplotlib.pyplot as plt
 
 PROBLEM_CLASSES = {
     "knapsack": KnapsackProblem,
     "alignment": AlignmentProblem
+}
+
+PROBLEM_SIZE_MAP = {
+    "alignment": ("sequence_1_size", "sequence_2_size"),
+    "knapsack": ("capacity", "items")
 }
 class ExperimentManager:
     def __init__(self, config_file: str, verbose):
@@ -108,31 +114,22 @@ class ExperimentManager:
 
 
     def generate_problem_combinations(self, base_params, sweep_config, problem_class):
-        """
-        base_params: dict con los parámetros base del problema
-        sweep_config: dict con parámetros a barrer con start/stop/step
-        problem_class: clase del problema (debe tener SWEEP_PARAMS)
-        """
         if not sweep_config:
             return [base_params]
 
-        # Solo usamos los parámetros que realmente pertenecen al problema
         sweep_keys = [k for k in sweep_config if k in getattr(problem_class, "SWEEP_PARAMS", [])]
         if not sweep_keys:
             return [base_params]
 
-        # Generamos la lista de valores a barrer para cada parámetro
         sweep_values = []
         for key in sweep_keys:
             cfg = sweep_config[key]
             start = cfg.get("start", base_params.get(key, 0))
             stop = cfg.get("stop", base_params.get(key, start))
             step = cfg.get("step", 1)
-            # Generamos la lista de valores
             values = list(range(start, stop + 1, step))
             sweep_values.append(values)
 
-        # Generamos todas las combinaciones
         combinations = []
         for combo in product(*sweep_values):
             new_params = base_params.copy()
@@ -142,7 +139,13 @@ class ExperimentManager:
 
         return combinations
 
+    def compute_problem_size(self, row):
+        size_a, size_b = PROBLEM_SIZE_MAP[row["problem"]]
+        return row[size_a] * row[size_b]
+
     def run_experiment(self):
+        graph = True
+        exp_to_graph = []
         for problem_name in self.config["experiments"]["problems_to_experiment"]:
             ProblemClass = self.get_problem_class(problem_name=problem_name)
             base_problem_params = self.config["problems"][problem_name]
@@ -158,7 +161,7 @@ class ExperimentManager:
                     random.seed(self.seed)
                     print(f"[{device.upper()}]")
                     self.current_experiment_dir = Path(self.config["experiments"]["data_dir"]) / device / "experiments" / problem_name / self.config["experiments"]["type"] / subdir
-                    self.get_max_frequency(device)
+                    fmax = self.get_max_frequency(device)
                     self.build_simulation(device)
                     
                     for instance in range(1, self.instances+1):
@@ -170,11 +173,11 @@ class ExperimentManager:
                         try:
                             with open(instance_dir / "error.log") as file:
                                 message = file.readline()
-                                if message != "CORRECT":
+                                if "CORRECT" not in message:
                                     print(f"Error: {message}")
                                     return
                         except:
-                            print("Error while simulating")
+                            print("Error while simulating, probably file not created in testbench")
                             return
 
                     # Create summary.csv
@@ -192,13 +195,15 @@ class ExperimentManager:
                             summary_df = pd.concat([summary_df, instance_df], ignore_index=True)
 
                     summary_df.to_csv(summary_csv_path, index=False, sep=';', decimal=',')
-                    avg_csv_path = self.current_experiment_dir / "average.csv"
-                    # Create average.csv
-                    summary_df.drop(columns=["test_id", "expected_solution", "hw_solution"], axis=1, inplace=True)
-                    summary_df_mean = summary_df.mean()
-                    avg_df = pd.DataFrame([summary_df_mean])
-                    avg_df = avg_df.round(4)
-                    avg_df.to_csv(avg_csv_path, index=False, sep=';', decimal=',')
+                    summary_df.drop(columns=["test_id"], axis=1, inplace=True)
+                    for key, value in params.items():
+                        summary_df[key] = value
+                    summary_df["device"] = device
+                    summary_df["fmax"] = fmax
+                    summary_df["exec_time"] = (summary_df["cycles"] / summary_df["fmax"]).round(4)
+                    summary_df["problem"] = problem_name
+                    summary_df["problem_size"] = summary_df.apply(self.compute_problem_size, axis=1)
+                    exp_to_graph.append(summary_df)
 
                     #json_data = {
                     #    "datetime": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -208,4 +213,90 @@ class ExperimentManager:
                     #}
                     #with open(self.current_experiment_dir / "info.json", "w+") as file:
                     #    file.write(json.dumps(json_data, indent=4))
+        print("Experiment has finished successfully!")
+
+        if graph == True:
+            general_df = pd.concat(exp_to_graph, ignore_index=True)
+            print(general_df)
+            general_df.to_csv(self.current_experiment_dir / "general.csv", index=False, sep=';', decimal=',')
+            plt.figure()
+
+            for device in general_df["device"].unique():
+                df_dev = general_df[general_df["device"] == device]
+
+                mean_df = (
+                    df_dev
+                    .groupby("problem_size")["exec_time"]
+                    .mean()
+                    .reset_index()
+                    .sort_values("problem_size")
+                )
+
+                plt.plot(
+                    mean_df["problem_size"],
+                    mean_df["exec_time"],
+                    marker="o",
+                    label=device
+                )
+
+            plt.xlabel("Problem size")
+            plt.ylabel("Mean execution time (s)")
+            plt.title("Execution time growth")
+            plt.legend()
+            plt.grid(True)
+
+            plt.show()
+            plt.savefig(self.current_experiment_dir / "figure.png")
+            plt.close()
+
+            plt.figure()
+
+            for device in general_df["device"].unique():
+                df_dev = general_df[general_df["device"] == device]
+
+                mean_df = (
+                    df_dev
+                    .groupby("problem_size")["cycles"]
+                    .mean()
+                    .reset_index()
+                    .sort_values("problem_size")
+                )
+
+                plt.plot(
+                    mean_df["problem_size"],
+                    mean_df["cycles"],
+                    marker="o",
+                    label=device
+                )
+
+            plt.xlabel("Problem size")
+            plt.ylabel("Mean cycles")
+            plt.title("Cycles growth")
+            plt.legend()
+            plt.grid(True)
+
+            plt.show()
+            plt.savefig(self.current_experiment_dir / "figure2.png")
+            plt.close()
+
+            plt.figure()
+
+            devices = general_df["device"].unique()
+            data = [
+                general_df[general_df["device"] == dev]["exec_time"]
+                for dev in devices
+            ]
+
+            plt.boxplot(data, labels=devices)
+            plt.ylabel("Execution time (s)")
+            plt.title("Execution time distribution per device")
+
+            plt.show()
+            plt.savefig(self.current_experiment_dir / "figure3.png")
+            plt.close()
+
+
+
+
+
 
