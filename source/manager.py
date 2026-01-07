@@ -245,8 +245,8 @@ class ExperimentManager:
             plt.legend()
             plt.grid(True)
 
-            plt.show()
             plt.savefig(self.current_experiment_dir / "figure.png")
+            plt.show()
             plt.close()
 
             plt.figure()
@@ -275,8 +275,8 @@ class ExperimentManager:
             plt.legend()
             plt.grid(True)
 
-            plt.show()
             plt.savefig(self.current_experiment_dir / "figure2.png")
+            plt.show()
             plt.close()
 
             plt.figure()
@@ -291,8 +291,8 @@ class ExperimentManager:
             plt.ylabel("Execution time (s)")
             plt.title("Execution time distribution per device")
 
-            plt.show()
             plt.savefig(self.current_experiment_dir / "figure3.png")
+            plt.show()
             plt.close()
 
 
