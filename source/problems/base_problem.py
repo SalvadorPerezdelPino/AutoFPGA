@@ -1,56 +1,27 @@
 from abc import ABC, abstractmethod
-import json
 
 class BaseProblem(ABC):
     """Interface for any problem"""
 
-    def __init__(self, config=None):
-        self.config = {}
-        if isinstance(config, str):
-            self.load_config(config)
-        elif isinstance(config, dict):
-            self.config = config 
+    def __init__(self, config: dict, problem_id: int = None):
+        self.config = config 
+        self.id = problem_id
 
-    def load_config(self, json_file):
-        with open(json_file, "r") as file:
-            self.config = json.load(file)
-    
-    def update_id(self, new_id):
-        self.id = new_id
-
-    def run(self, store_dir):
-        self.store_dir = store_dir
-        self.generate_inputs()
-        self.save_inputs()
-        self.save_inputs_for_fpga()
-        self.solve()
-        self.save_result()
-        self.save_result_for_fpga()
-    
     @abstractmethod
-    def generate_inputs(self):
+    def inputs(self) -> dict:
         pass
 
     @abstractmethod
-    def save_inputs(self):
+    def solution(self) -> dict:
         pass
 
     @abstractmethod
-    def save_inputs_for_fpga(self):
-        pass
-
-    @abstractmethod
-    def solve(self):
-        pass
-
-    @abstractmethod
-    def save_result(self):
-        pass
-
-    @abstractmethod
-    def save_result_for_fpga(self):
+    def size(self) -> int:
         pass
 
     @abstractmethod
     def to_dict(self) -> dict:
         pass
+
+    def problem_type(self) -> str:
+        return self.__class__.__name__.lower()
