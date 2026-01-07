@@ -12,14 +12,31 @@ class AlignmentProblem(BaseProblem):
         self.gap_penalty = self.config.get("gap_penalty", -2)
         self.sequence_1 = ""
         self.sequence_2 = ""
-        self.result = None
 
-    def generate_inputs(self) -> None:
-        size_1 = self.config.get("sequence_1_size", 10)
-        size_2 = self.config.get("sequence_2_size", 10)
-        self.sequence_1 = "".join(random.choice(self.alphabet) for _ in range(size_1))
-        self.sequence_2 = "".join(random.choice(self.alphabet) for _ in range(size_2))
-        print(f"Generated sequences: {self.sequence_1}, {self.sequence_2}\n")
+        self.size_1 = self.config.get("sequence_1_size", 10)
+        self.size_2 = self.config.get("sequence_2_size", 10)
+        self.sequence_1 = "".join(random.choice(self.alphabet) for _ in range(self.size_1))
+        self.sequence_2 = "".join(random.choice(self.alphabet) for _ in range(self.size_2))
+
+    def inputs(self) -> dict:
+        return {
+            "size_1": self.size_1,
+            "size_2": self.size_2,
+            "sequence_1": self.sequence_1,
+            "sequence_2": self.sequence_2
+        }
+
+    def solution(self) -> dict:
+        return {
+            "solution": self.solve()
+        }
+
+    def size(self) -> dict:
+        return {
+            "sizeA": len(self.sequence_1),
+            "sizeB": len(self.sequence_2),
+            "matrix_elements": (self.size_1 + 1) * (self.size_2 + 1)
+        }
 
     def save_inputs(self) -> None:
         save_path = Path(self.store_dir) / f"input_{self.id}.txt"
@@ -64,21 +81,21 @@ class AlignmentProblem(BaseProblem):
                         scoring_matrix[i - 1][j - 1] + diagonal_score, 
                         scoring_matrix[i - 1][j] + self.gap_penalty, 
                         scoring_matrix[i][j - 1] + self.gap_penalty)
-        self.result = scoring_matrix[rows][columns]
-        return self.result
+        result = scoring_matrix[rows][columns]
+        return result
 
     def save_result(self) -> None:
         save_path = Path(self.store_dir) / f"expected_{self.id}.txt"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        with open(save_path, "w+") as file:
-            file.write(f"Max score: {self.result}\n")
+        #with open(save_path, "w+") as file:
+            #file.write(f"Max score: {self.result}\n")
         #print(f"Solution stored in {save_path}\n")
 
     def save_result_for_fpga(self) -> None:
         save_path = Path(self.store_dir) / f"expected_{self.id}.mem"
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        with open(save_path, "w+") as file:
-            file.write(f"{self.result &0xFFFF:016b}\n")
+        #with open(save_path, "w+") as file:
+            #file.write(f"{self.result &0xFFFF:016b}\n")
         #print(f"Solution stored for FPGA in {save_path}\n")
 
     def to_dict(self) -> dict:
@@ -88,7 +105,7 @@ class AlignmentProblem(BaseProblem):
             "match_score": self.match_score,
             "mismatch_penalty": self.mismatch_penalty,
             "gap_penalty": self.gap_penalty,
-            "sequence_1_size" : len(self.sequence_1),
-            "sequence_2_size": len(self.sequence_2)
+            "sequence_1_size" : self.size_1,
+            "sequence_2_size": self.size_2
         }
         return data
