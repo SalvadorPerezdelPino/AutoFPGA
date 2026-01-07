@@ -12,6 +12,29 @@ class KnapsackProblem(BaseProblem):
         self.weights = []
         self.result = None
 
+        self.values = [random.randint(1, 100) for _ in range(self.items)]
+        self.weights = [random.randint(int(self.capacity/4), int(self.capacity/2)) for _ in range(self.items)]
+
+    def inputs(self) -> dict:
+        return {
+            "capacity": self.capacity,
+            "items": self.items,
+            "values": self.values,
+            "weights": self.weights
+        }
+
+    def solution(self) -> dict:
+        return {
+            "solution": self.solve()
+        }
+
+    def size(self) -> dict:
+        return {
+            "sizeA": self.capacity,
+            "sizeB": self.items,
+            "matrix_elements": (self.capacity + 1) * (self.items + 1)
+        }
+
     def generate_inputs(self):
         self.values = [random.randint(1, 100) for _ in range(self.items)]
         self.weights = [random.randint(int(self.capacity/4), int(self.capacity/2)) for _ in range(self.items)]
