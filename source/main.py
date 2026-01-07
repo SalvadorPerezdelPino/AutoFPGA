@@ -1,5 +1,5 @@
-from compiler import *
-from manager import *
+from hardware.quartus.compiler import *
+from experiment.manager import *
 import os
 import argparse
 

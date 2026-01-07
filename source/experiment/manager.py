@@ -6,7 +6,7 @@ from datetime import datetime
 import subprocess
 import re
 import pandas as pd
-from compiler import QuartusCompiler
+from hardware.quartus.compiler import QuartusCompiler
 import random
 from itertools import product
 import matplotlib.pyplot as plt
