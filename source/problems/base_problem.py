@@ -16,7 +16,11 @@ class BaseProblem(ABC):
         pass
 
     @abstractmethod
-    def size(self) -> dict:
+    def size(self) -> int:
+        pass
+
+    @abstractmethod
+    def dimensions(self) -> dict:
         pass
 
     @abstractmethod
