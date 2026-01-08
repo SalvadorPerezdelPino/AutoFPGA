@@ -8,7 +8,7 @@ class QuartusCommandError(RuntimeError):
     pass
 
 class QuartusCommand:
-    def __init__(self, command):
+    def __init__(self, command: list[str]):
         self.command = command
         
     def run(self, project: Path, verbose: bool = False):
@@ -18,7 +18,7 @@ class QuartusCommand:
         logger.info(f"Executing {self.command} command in project {project}")
 
         result = subprocess.run(
-            [self.command, project.as_posix()], 
+            self.command + [project.as_posix()], 
             stdout=None if verbose else subprocess.DEVNULL, 
             stderr=None if verbose else subprocess.DEVNULL
         )

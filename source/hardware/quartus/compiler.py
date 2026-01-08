@@ -1,109 +1,42 @@
-import subprocess
-import json
+from hardware.quartus.command import QuartusCommand, QuartusCommandError
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 class QuartusCompiler:
-    def __init__(self, config_file: str, verbose: bool = False) -> None:
-        with open(config_file, "r") as file:
-            self.config = json.load(file)
-
-        self.targets = self.config["experiments"]["devices_to_experiment"]
+    def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
+        self.commands = {
+            "map": QuartusCommand(["quartus_map"]),
+            "fit": QuartusCommand(["quartus_fit"]),
+            "asm": QuartusCommand(["quartus_asm"]),
+            "sta": QuartusCommand(["quartus_sta"]),
+            "eda": QuartusCommand(["quartus_eda"]),
+            "full": QuartusCommand(["quartus_sh", "--flow", "compile"])
+        }
 
-    def synthetize(self) -> None:
-        for device in self.targets:
-            project_dir = Path(f"../../FPGA/DE10/{device}/synthesis")
-            qpf_files = list(project_dir.glob("*.qpf"))
-            project_path = qpf_files[0]
-            if self.verbose:
-                result = subprocess.run(f"quartus_map {project_path}")
-            else:
-                result = subprocess.run(f"quartus_map {project_path}", 
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                print("Synthesis failed.")
-                exit(result.returncode)
-            else:
-                print("Synthesis was successful!")
+    def _run(self, project_path: Path, command_key: str):
+        try:
+            self.commands[command_key].run(project_path, self.verbose)
+        except QuartusCommandError as e:
+            logger.error(str(e))
+            raise
 
+    def synthetize(self, project_path: Path) -> None:
+        self._run(project_path, "map")
 
-    def fit(self) -> None:
-        for device in self.targets:
-            project_dir = Path(f"../../FPGA/DE10/{device}/synthesis")
-            qpf_files = list(project_dir.glob("*.qpf"))
-            project_path = qpf_files[0]
-            if self.verbose:
-                result = subprocess.run(f"quartus_fit {project_path}")
-            else:
-                result = subprocess.run(f"quartus_fit {project_path}", 
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                print("Fitting failed.")
-                exit(result.returncode)
-            else:
-                print("Fitting was successful!")
+    def fit(self, project_path) -> None:
+        self._run(project_path, "fit")
 
-    def assemble(self) -> None:
-        for device in self.targets:
-            project_dir = Path(f"../../FPGA/DE10/{device}/synthesis")
-            qpf_files = list(project_dir.glob("*.qpf"))
-            project_path = qpf_files[0]
-            if self.verbose:
-                result = subprocess.run(f"quartus_asm {project_path}")
-            else:
-                result = subprocess.run(f"quartus_asm {project_path}", 
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                print("Assembling failed.")
-                exit(result.returncode)
-            else:
-                print("Assembling was successful!")
+    def assemble(self, project_path: Path) -> None:
+        self._run(project_path, "asm")
 
-    def timing(self) -> None:
-        for device in self.targets:
-            project_dir = Path(f"../../FPGA/DE10/{device}/synthesis")
-            qpf_files = list(project_dir.glob("*.qpf"))
-            project_path = qpf_files[0]
-            if self.verbose:
-                result = subprocess.run(f"quartus_sta {project_path}")
-            else:
-                result = subprocess.run(f"quartus_sta {project_path}", 
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                print("Timing failed.")
-                exit(result.returncode)
-            else:
-                print("Timing was successful!")
+    def timing(self, project_path: Path) -> None:
+        self._run(project_path, "sta")
 
-    def netlist(self) -> None:
-        for device in self.targets:
-            project_dir = Path(f"../../FPGA/DE10/{device}/synthesis")
-            qpf_files = list(project_dir.glob("*.qpf"))
-            project_path = qpf_files[0]
-            if self.verbose:
-                result = subprocess.run(f"quartus_eda {project_path}")
-            else:
-                result = subprocess.run(f"quartus_eda {project_path}", 
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                print("Netlist creation failed.")
-                exit(result.returncode)
-            else:
-                print("Netlist creation was successful!")
+    def netlist(self, project_path: Path) -> None:
+        self._run(project_path, "eda")
 
-    def compile_all(self) -> None:
-        for device in self.targets:
-            print(f"Compiling {device}...")
-            project_dir = Path(f"../../FPGA/DE10/{device}/synthesis")
-            qpf_files = list(project_dir.glob("*.qpf"))
-            project_path = qpf_files[0]
-            if self.verbose:
-                result = subprocess.run(f"quartus_sh --flow compile {project_path}")
-            else:
-                result = subprocess.run(f"quartus_sh --flow compile {project_path}", 
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            if result.returncode != 0:
-                print("Compilation failed at some point.")
-                exit(result.returncode)
-            else:
-                print("Compilation was successful!")
+    def compile_all(self, project_path: Path) -> None:
+        self._run(project_path, "full")
