@@ -4,8 +4,8 @@ from pathlib import Path
 
 class AlignmentProblem(BaseProblem):
     SWEEP_PARAMS = ["sequence_1_size", "sequence_2_size"]
-    def __init__(self, config_file=None) -> None:
-        super().__init__(config_file)
+    def __init__(self, config, problem_id) -> None:
+        super().__init__(config, problem_id)
         self.alphabet = self.config.get("alphabet", "ACGT")
         self.match_score = self.config.get("match_score", 1)
         self.mismatch_penalty = self.config.get("mismatch_penalty", -1)

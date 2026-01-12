@@ -4,10 +4,10 @@ from pathlib import Path
 
 class KnapsackProblem(BaseProblem):
     SWEEP_PARAMS = ["capacity", "items"]
-    def __init__(self, config_file=None) -> None:
-        super().__init__(config_file)
-        self.capacity = config_file.get("capacity", 50)
-        self.items = config_file.get("items", 20)
+    def __init__(self, config, problem_id) -> None:
+        super().__init__(config, problem_id)
+        self.capacity = config.get("capacity", 50)
+        self.items = config.get("items", 20)
         self.values = []
         self.weights = []
         self.result = None
