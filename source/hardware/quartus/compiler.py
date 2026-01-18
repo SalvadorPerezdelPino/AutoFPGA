@@ -16,9 +16,13 @@ class QuartusCompiler:
             "full": QuartusCommand(["quartus_sh", "--flow", "compile"])
         }
 
-    def _run(self, project_path: Path, command_key: str):
+    def _run(self, project_path: Path, command_key: str, **kwargs):
         try:
-            self.commands[command_key].run(project_path, self.verbose)
+            self.commands[command_key].run(
+                project=project_path, 
+                verbose=self.verbose,
+                **kwargs
+            )
         except QuartusCommandError as e:
             logger.error(str(e))
             raise
