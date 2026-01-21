@@ -3,9 +3,10 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 
 class DeviceDriver(ABC):
-    def __init__(self, project_path: Path, name: str, compiler: QuartusCompiler):
+    def __init__(self, project_path: Path, simulation_path: Path, name: str, compiler: QuartusCompiler):
         self.name = name
         self.project_path = project_path
+        self.simulation_path = simulation_path
         self.compiler = compiler
 
     @abstractmethod
