@@ -23,7 +23,10 @@ class AlignmentProblem(BaseProblem):
             "size_1": self.size_1,
             "size_2": self.size_2,
             "sequence_1": self.sequence_1,
-            "sequence_2": self.sequence_2
+            "sequence_2": self.sequence_2,
+            "match_score": self.match_score,
+            "mismatch_penalty": self.mismatch_penalty,
+            "gap_penalty": self.gap_penalty
         }
 
     def solution(self) -> dict:
