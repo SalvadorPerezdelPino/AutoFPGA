@@ -28,7 +28,7 @@ class QuartusCommand:
         
         execution_dir = cwd if cwd else (project.parent if project else Path.cwd())
 
-        logger.info(f"Executing {final_cmd} command in project {project}")
+        logger.info(f"Executing {final_cmd} command in project {execution_dir}")
 
         result = subprocess.run(
             final_cmd,
@@ -39,5 +39,5 @@ class QuartusCommand:
         
         if result.returncode != 0:
             raise QuartusCommandError(
-                f"{final_cmd} failed for project {project}"
+                f"{final_cmd} failed for project {execution_dir}"
             )
