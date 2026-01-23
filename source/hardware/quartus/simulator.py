@@ -19,6 +19,8 @@ class QuartusSimulator:
         test_dir = project_path / "test"
         
         script_path = sim_dir / "scripts" / "compile_sim.tcl"
+
+        script_path.parent.mkdir(parents=True, exist_ok=True)
         
         self._create_compile_script(script_path, work_dir, hdl_dir, test_dir)
         cmd = QuartusCommand(self.base_cmd + ["-do", script_path.as_posix()])
@@ -49,7 +51,6 @@ class QuartusSimulator:
 
         cmd_args = self.base_cmd.copy()
         cmd_args.append(tb_name)
-        # Añadimos el comando "do" explícitamente dentro del string
         cmd_args.extend(["-do", f"do {script_path.as_posix()}"])
         if generics:
             for key, value in generics.items():
@@ -69,25 +70,34 @@ class QuartusSimulator:
 
     def _create_compile_script(self, script_path: Path, work_path: Path, hdl_path: Path, test_path: Path):
         work_str = work_path.as_posix()
-        hdl_wildcard = (hdl_path / "*.v").as_posix()
-        test_wildcard = (test_path / "*.sv").as_posix()
+        lines = [
+            "onerror { quit -code 1 -f }", 
+            f'if {{![file exists "{work_str}"]}} {{',
+            f'    vlib "{work_str}"',
+            f'    vmap work "{work_str}"',
+            f'}} else {{',
+            f'    vmap work "{work_str}"',
+            f'}}',
+            ""
+        ]
 
-        tcl_content = f"""
-        if {{![file exists "{work_str}"]}} {{
-            vlib "{work_str}"
-            vmap work "{work_str}"
-        }} else {{
-            vmap work "{work_str}"
-        }}
+        if list(hdl_path.glob("*.v")):
+            lines.append(f'puts "Compiling Verilog files from {hdl_path.name}..."')
+            lines.append(f'vlog -work work "{hdl_path.as_posix()}/*.v"')
+        
+        if list(hdl_path.glob("*.sv")):
+            lines.append(f'puts "Compiling SystemVerilog files from {hdl_path.name}..."')
+            lines.append(f'vlog -work work "{hdl_path.as_posix()}/*.sv"')
 
-        puts "Compiling HDL files from {hdl_path.name}..."
-        vlog -work work "{hdl_wildcard}"
-        
-        puts "Compiling Testbench files..."
-        vlog -work work "{test_wildcard}"
-        
-        quit
-        """
-        
+        if list(test_path.glob("*.v")):
+            lines.append(f'puts "Compiling Testbench Verilog..."')
+            lines.append(f'vlog -work work "{test_path.as_posix()}/*.v"')
+            
+        if list(test_path.glob("*.sv")):
+            lines.append(f'puts "Compiling Testbench SystemVerilog..."')
+            lines.append(f'vlog -work work "{test_path.as_posix()}/*.sv"')
+
+        lines.append("quit -f")
+
         with open(script_path, "w") as f:
-            f.write(tcl_content)
+            f.write("\n".join(lines))
