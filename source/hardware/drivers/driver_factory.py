@@ -41,6 +41,7 @@ class DriverFactory():
                 name=driver_name, 
                 project_path=project_path, 
                 compiler=self.compiler, 
+                simulation_path=simulation_path,
                 timing_analyzer=self.timing_analyzer,
                 simulator=self.simulator
             )

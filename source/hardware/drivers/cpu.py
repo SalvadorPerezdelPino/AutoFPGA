@@ -33,8 +33,8 @@ class CPUDriver(DeviceDriver):
     
     def build(self) -> None:
         logger.info(f"Building project at {self.project_path}")
-        #self.compiler.compile_all(project_path=self.project_path)
-        #self.fmax = self.timing_analyzer.get_fmax(project_path=self.project_path)
+        self.compiler.compile_all(project_path=self.device_path)
+        self.fmax = self.timing_analyzer.get_fmax(project_path=self.device_path)
         logger.info(f"Device {self.name} fmax: {self.fmax} MHz")
 
     def run_simulation(self, output_dir: Path) -> pd.DataFrame:
@@ -42,8 +42,7 @@ class CPUDriver(DeviceDriver):
         output_dir.mkdir(parents=True, exist_ok=True)
         sim_args = {
             "ID": output_dir.name,         
-            "DIR": output_dir.as_posix(),  
-            #"G_SIZE": self.current_params.get("problem_size", 100), 
+            "DIR": output_dir.as_posix()
         }
         sim_work_dir = self.simulation_path / "simulation_files"
         script_path = sim_work_dir / "scripts" / "run.tcl"
@@ -84,7 +83,7 @@ class CPUDriver(DeviceDriver):
             return pd.DataFrame()
         
         try:
-            df = pd.read_csv(results_path)
+            df = pd.read_csv(results_path, decimal=',', sep=';')
             if df.empty:
                 return df
 

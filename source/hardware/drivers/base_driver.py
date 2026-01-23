@@ -6,6 +6,10 @@ class DeviceDriver(ABC):
     def __init__(self, project_path: Path, simulation_path: Path, name: str, compiler: QuartusCompiler):
         self.name = name
         self.project_path = project_path
+        try:
+            self.device_path = next((self.project_path / "synthesis").glob("*.qpf"))
+        except StopIteration:
+            raise FileNotFoundError(f"No .qpf file found in {self.project_path / 'synthesis'}")
         self.simulation_path = simulation_path
         self.compiler = compiler
 
