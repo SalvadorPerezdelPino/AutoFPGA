@@ -1,15 +1,7 @@
 from core.config import load_config
-from experiment.task import TaskBuilder, Task
-from hardware.drivers.driver_factory import DriverFactory
-from hardware.quartus.compiler import QuartusCompiler
-from hardware.quartus.timing import TimingAnalyzer
-from problems.problem_factory import ProblemFactory
-from hardware.quartus.simulator import QuartusSimulator
-from serialization.serializer_factory import SerializerFactory
-from analysis.result_manager import ResultManager
-from analysis.visualizer import Visualizer
-from pathlib import Path
 import logging
+
+from experiment.runner import ExperimentRunner
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -17,43 +9,7 @@ logging.basicConfig(level=logging.INFO)
 config = load_config("./config/config.json")
 
 verbose = True
-compiler = QuartusCompiler(verbose=verbose)
-timing_analyzer = TimingAnalyzer(verbose=verbose)
-simulator = QuartusSimulator(verbose=verbose)
-driver_factory = DriverFactory(config["devices"], compiler, timing_analyzer, simulator)
-task_builder = TaskBuilder(Path(config["config"]["root_dir"]))
-tasks = task_builder.create_tasks(config)
-result_manager = ResultManager()
 
-for task in tasks:
-    logger.info(f"Running {task.name} on {task.device_name}")
-    driver = driver_factory.get(task.device_name)
-    problem = ProblemFactory.get(task.problem_name, task.params)
+runner = ExperimentRunner(config=config, verbose=verbose)
 
-    serializer = SerializerFactory.get(task.problem_name, task.params)
-    logger.info(f"Generating inputs for task {task.id} in path {task.output_dir}")
-    serializer.write(problem, task.output_dir)
-
-    input_file_path = (task.output_dir / f"input.mem").resolve().as_posix()
-    hw_params = task.params.copy()
-    hw_params["input_file"] = input_file_path
-    driver.prepare_hardware(hw_params)
-    result = driver.run_simulation(task.output_dir)
-
-    result_manager.add(result)
-
-
-summary_path = Path(config["config"]["root_dir"]) / "summary_results.csv"
-result_manager.save(summary_path)
-
-# 4. Generar Gráficas
-logger.info("Generating plots...")
-master_df = result_manager.df
-visualizer = Visualizer(master_df)
-
-# Asumimos que todos los tasks del experimento actual son del mismo problema
-# Si mezclas problemas, tendrías que filtrar el DF.
-current_problem = tasks[0].problem_name 
-plots_dir = Path(config["config"]["root_dir"]) / "plots"
-
-visualizer.plot_performance_summary(current_problem, plots_dir)
+runner.run()

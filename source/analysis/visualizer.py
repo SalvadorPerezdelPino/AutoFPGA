@@ -4,71 +4,82 @@ import seaborn as sns
 from pathlib import Path
 
 class Visualizer:
-    PROBLEM_SIZE_MAP = {
-        "alignment": "sequence_1_size", 
-        "knapsack": "items"             
-    }
+    def __init__(self, df: pd.DataFrame = None):
+        if df is not None:
+            self.df = df.copy()
+            self._calculate_axis()
 
-    def __init__(self, df: pd.DataFrame):
-        self.df = df
         sns.set_theme(style="whitegrid")
         plt.rcParams.update({'figure.figsize': (10, 6)})
+        
 
-    def plot_metric(self, problem_name: str, y_col: str, output_dir: Path, title: str = None):
+    def set_df(self, df: pd.DataFrame):
+        self.df = df.copy()
+        self._calculate_axis()
+
+    def _calculate_axis(self):
+        if 'sequence_1_size' in self.df.columns:
+            self.df['plot_x'] = self.df['sequence_1_size']
+            self.x_label = "Sequence Length (N)" 
+            self.problem_type = "alignment"
+            
+        elif 'items' in self.df.columns:
+            self.df['plot_x'] = self.df['items']
+            self.x_label = "Number of Items"
+            self.problem_type = "knapsack"
+        
+        else:
+            self.df['plot_x'] = self.df.index
+            self.x_label = "Test Instance ID"
+            self.problem_type = "unknown"
+
+    def plot_metric(self, y_col: str, output_dir: Path, title: str = None):
         if self.df.empty:
             print("No data to plot.")
             return
 
-        x_col = self.PROBLEM_SIZE_MAP.get(problem_name, "problem_id")
-        
-        data = self.df.dropna(subset=[x_col, y_col])
+        data = self.df.dropna(subset=['plot_x', y_col])
 
         if data.empty:
-            print(f"No valid data for plotting {y_col} vs {x_col}")
+            print(f"No valid data for plotting {y_col}")
             return
 
         plt.figure()
         
         sns.lineplot(
             data=data, 
-            x=x_col, 
+            x='plot_x', 
             y=y_col, 
             hue="device", 
             style="device", 
             markers=True, 
-            dashes=False
+            dashes=False,
+            linewidth=2.5 
         )
 
-        plt.title(title or f"{y_col} vs {x_col} ({problem_name})")
-        plt.xlabel(x_col.replace("_", " ").title())
+        final_title = title or f"{y_col} vs {self.x_label}"
+        plt.title(final_title)
+        plt.xlabel(self.x_label)
         plt.ylabel(y_col.replace("_", " ").title())
         
         output_dir.mkdir(parents=True, exist_ok=True)
-        filename = f"{problem_name}_{y_col}_comparison.png"
-        plt.savefig(output_dir / filename, dpi=300)
+        filename = f"{self.problem_type}_{y_col}_vs_length.png" # Cambié el nombre del archivo
+        save_path = output_dir / filename
+        
+        plt.savefig(save_path, dpi=300)
         plt.close()
-        print(f"Plot saved: {output_dir / filename}")
+        print(f"Plot saved: {save_path}")
 
-    def plot_performance_summary(self, problem_name: str, output_dir: Path):
+    def plot_performance_summary(self, output_dir: Path):
         self.plot_metric(
-            problem_name=problem_name,
             y_col="cycles",
             output_dir=output_dir,
-            title="Performance Comparison: Cycles"
+            title="Scalability: Cycles vs Sequence Length"
         )
 
-        if "exec_time_s" in self.df.columns:
+        if "exec_time_ns" in self.df.columns:
             self.plot_metric(
-                problem_name=problem_name,
                 y_col="exec_time_ns",
                 output_dir=output_dir,
-                title="Performance Comparison: Execution Time"
-            )
-        
-        if "fmax_mhz" in self.df.columns:
-            self.plot_metric(
-                problem_name=problem_name,
-                y_col="fmax_mhz",
-                output_dir=output_dir,
-                title="Device Max Frequency"
+                title="Performance: Execution Time vs Sequence Length"
             )
