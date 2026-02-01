@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from typing import List, Dict, Any, Union
 from pathlib import Path
 import itertools
+import logging
+
+logger = logging.getLogger('Task')
 
 @dataclass
 class Task():

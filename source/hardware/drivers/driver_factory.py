@@ -5,6 +5,9 @@ from hardware.quartus.compiler import QuartusCompiler
 from hardware.quartus.timing import TimingAnalyzer
 from hardware.quartus.simulator import QuartusSimulator
 from pathlib import Path
+import logging
+
+logger = logging.getLogger('Driver Factory')
 
 class DriverFactory():
     def __init__(self, devices_config: dict, compiler: QuartusCompiler, timing_analyzer: TimingAnalyzer, simulator: QuartusSimulator):

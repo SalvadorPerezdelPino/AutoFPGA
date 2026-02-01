@@ -3,7 +3,7 @@ import re
 from hardware.quartus.command import QuartusCommand, QuartusCommandError
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Quartus Timing Analyzer')
 
 class TimingAnalyzer:
     def __init__(self, verbose: bool = False):

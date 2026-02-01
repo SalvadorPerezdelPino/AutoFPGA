@@ -2,7 +2,7 @@ from hardware.quartus.command import QuartusCommand, QuartusCommandError
 from pathlib import Path
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Quartus Simulator')
 
 class QuartusSimulator:
     def __init__(self, verbose: bool = False) -> None:

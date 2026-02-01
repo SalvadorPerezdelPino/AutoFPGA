@@ -10,7 +10,7 @@ from analysis.visualizer import Visualizer
 from pathlib import Path
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Runner')
 
 class ExperimentRunner():
     def __init__(self, config: dict, verbose: bool = False):

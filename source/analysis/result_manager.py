@@ -1,6 +1,9 @@
+import logging
 import pandas as pd
 from pathlib import Path
 from typing import List
+
+logger = logging.getLogger('Result Manager')
 
 class ResultManager:
     def __init__(self):
@@ -24,7 +27,7 @@ class ResultManager:
         
         path.parent.mkdir(parents=True, exist_ok=True)
         self._master_df.to_csv(path, index=False, sep=';', decimal=',')
-        print(f"Results saved to {path}")
+        logger.info(f"Results saved to {path}")
 
     @property
     def df(self):

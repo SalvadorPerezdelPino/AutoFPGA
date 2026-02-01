@@ -8,7 +8,7 @@ import pandas as pd
 import logging
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('CPU Driver')
 
 class CPUDriver(DeviceDriver):
     def __init__(self, project_path: Path, simulation_path: Path, name: str, compiler: QuartusCompiler, timing_analyzer: TimingAnalyzer, simulator: QuartusSimulator):

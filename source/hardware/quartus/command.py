@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('Command')
 
 class QuartusCommandError(RuntimeError):
     pass

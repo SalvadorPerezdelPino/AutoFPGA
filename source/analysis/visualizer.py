@@ -2,6 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+import logging
+
+logger = logging.getLogger('Visualizer')
 
 class Visualizer:
     def __init__(self, df: pd.DataFrame = None):
@@ -35,13 +38,13 @@ class Visualizer:
 
     def plot_metric(self, y_col: str, output_dir: Path, title: str = None):
         if self.df.empty:
-            print("No data to plot.")
+            logger.warning("No data to plot.")
             return
 
         data = self.df.dropna(subset=['plot_x', y_col])
 
         if data.empty:
-            print(f"No valid data for plotting {y_col}")
+            logger.warning(f"No valid data for plotting {y_col}")
             return
 
         plt.figure()
@@ -68,7 +71,7 @@ class Visualizer:
         
         plt.savefig(save_path, dpi=300)
         plt.close()
-        print(f"Plot saved: {save_path}")
+        logger.info(f"Plot saved: {save_path}")
 
     def plot_performance_summary(self, output_dir: Path):
         self.plot_metric(
