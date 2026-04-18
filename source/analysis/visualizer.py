@@ -1,8 +1,10 @@
 import pandas as pd
+import logging
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
+logging.getLogger('PIL').setLevel(logging.WARNING)
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-import logging
 
 logger = logging.getLogger('Visualizer')
 
@@ -16,7 +18,9 @@ class Visualizer:
         plt.rcParams.update({'figure.figsize': (10, 6)})
         
 
-    def set_df(self, df: pd.DataFrame):
+    def set_df_from_csv(self, csv: str):
+        path = Path(csv)
+        df = pd.read_csv(path, decimal=',', sep=';')
         self.df = df.copy()
         self._calculate_axis()
 
@@ -49,7 +53,7 @@ class Visualizer:
 
         plt.figure()
         
-        sns.lineplot(
+        ax = sns.lineplot(
             data=data, 
             x='plot_x', 
             y=y_col, 
@@ -60,13 +64,31 @@ class Visualizer:
             linewidth=2.5 
         )
 
+        for i in range(data.shape[0]):
+            x_val = data['plot_x'].iloc[i]
+            y_val = data[y_col].iloc[i]
+            
+            label = f"{y_val:g}"
+            
+            ax.annotate(
+                label,                   
+                xy=(x_val, y_val),       
+                xytext=(0, 7),            
+                textcoords='offset points', 
+                ha='center',            
+                va='bottom',               
+                fontsize=9,
+                fontweight='semibold',
+                color='black'
+            )
+
         final_title = title or f"{y_col} vs {self.x_label}"
         plt.title(final_title)
         plt.xlabel(self.x_label)
         plt.ylabel(y_col.replace("_", " ").title())
         
         output_dir.mkdir(parents=True, exist_ok=True)
-        filename = f"{self.problem_type}_{y_col}_vs_length.png" # Cambié el nombre del archivo
+        filename = f"{self.problem_type}_{y_col}_vs_length.png"
         save_path = output_dir / filename
         
         plt.savefig(save_path, dpi=300)
