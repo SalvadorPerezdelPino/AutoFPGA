@@ -6,6 +6,7 @@ from hardware.quartus.command import QuartusCommandError
 from pathlib import Path
 import pandas as pd
 import logging
+import json
 
 logger = logging.getLogger('ASIC Driver')
 
@@ -147,7 +148,9 @@ class ASICDriver(DeviceDriver):
                 df["fmax_mhz"] = float("nan")
             
             # Add extra information for better recovery
-            df.to_csv(results_path, index=False, sep=';', decimal=',')
+            #df.to_csv(results_path, index=False, sep=';', decimal=',')
+            
+            df["correct"] = df["expected_solution"] == df["hw_solution"]
             
             return df
         except Exception as e:

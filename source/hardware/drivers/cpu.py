@@ -101,7 +101,7 @@ class CPUDriver(DeviceDriver):
                 df["fmax_mhz"] = float("nan")
                 df["exec_time_s"] = float("nan")
                 df["exec_time_ns"] = float("nan")
-
+            df["correct"] = df["expected_solution"] == df["hw_solution"]
             return df
 
         except Exception as e:
