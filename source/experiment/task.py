@@ -5,6 +5,7 @@ import itertools
 import logging
 import hashlib
 import json
+from problems.problem_factory import ProblemFactory
 
 logger = logging.getLogger('Task')
 
@@ -42,8 +43,11 @@ class TaskBuilder():
         else:
             return [val]
         
-    def _params_seed(self, params: dict) -> int:
-        structural = {k: v for k, v in params.items() if k != "input_file"}
+    def _params_seed(self, params: dict, base_seed: int, problem_name: str) -> int:
+        problem_class = ProblemFactory._problems[problem_name]
+        size_keys = problem_class.SWEEP_PARAMS
+        structural = {k: params[k] for k in size_keys if k in params}
+        structural["base_seed"] = base_seed
         digest = hashlib.md5(json.dumps(structural, sort_keys=True).encode()).hexdigest()
         return int(digest[:8], 16)
     
@@ -90,7 +94,8 @@ class TaskBuilder():
                 final_params = {**base_params, **s_params, **c_params}
                 
                 if base_seed is not None:
-                    final_params["seed"] = self._params_seed(final_params)
+                    final_params["base_seed"] = base_seed
+                    final_params["seed"] = self._params_seed(final_params, base_seed, problem_name)
 
                 for device in devices:
                     run_id = f"{run_counter:04d}"

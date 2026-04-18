@@ -9,6 +9,7 @@ from analysis.result_manager import ResultManager
 from analysis.visualizer import Visualizer
 from pathlib import Path
 import logging
+import json
 
 logger = logging.getLogger('Runner')
 
@@ -38,6 +39,11 @@ class ExperimentRunner():
             input_file_path = (task.output_dir / f"input.mem").resolve().as_posix()
             hw_params = task.params.copy()
             hw_params["input_file"] = input_file_path
+            
+            task.output_dir.mkdir(parents=True, exist_ok=True)
+            with open(task.output_dir / "params.json", "w") as file:
+                json.dump({"params": task.params}, file, indent=2)
+
             driver.prepare_hardware(hw_params)
             result = driver.run_simulation(task.output_dir)
 
