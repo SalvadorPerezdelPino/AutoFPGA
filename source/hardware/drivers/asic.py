@@ -146,6 +146,9 @@ class ASICDriver(DeviceDriver):
             else:
                 df["fmax_mhz"] = float("nan")
             
+            # Add extra information for better recovery
+            df.to_csv(results_path, index=False, sep=';', decimal=',')
+            
             return df
         except Exception as e:
             logger.error(f"Error parsing simulation results: {e}")

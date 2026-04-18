@@ -43,15 +43,14 @@ class ExperimentRunner():
 
             result_manager.add(result)
 
-
-        summary_path = Path(self.config["config"]["root_dir"]) / "summary_results.csv"
+        experiment_path = Path(self.config["config"]["root_dir"]) / self.config["experiments"][0]["name"]
+        summary_path = experiment_path / "summary_results.csv"
         result_manager.save(summary_path)
 
         logger.info("Generating plots...")
         master_df = result_manager.df
         visualizer = Visualizer(master_df)
 
-        current_problem = tasks[0].problem_name 
-        plots_dir = Path(self.config["config"]["root_dir"]) / "plots"
+        plots_dir = experiment_path / "plots"
 
         visualizer.plot_performance_summary(plots_dir)
