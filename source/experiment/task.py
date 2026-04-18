@@ -3,6 +3,8 @@ from typing import List, Dict, Any, Union
 from pathlib import Path
 import itertools
 import logging
+import hashlib
+import json
 
 logger = logging.getLogger('Task')
 
@@ -39,12 +41,18 @@ class TaskBuilder():
             return val
         else:
             return [val]
+        
+    def _params_seed(self, params: dict) -> int:
+        structural = {k: v for k, v in params.items() if k != "input_file"}
+        digest = hashlib.md5(json.dumps(structural, sort_keys=True).encode()).hexdigest()
+        return int(digest[:8], 16)
     
     def _generate_tasks_for_experiment(self, exp_cfg: dict, problems_config: dict) -> List[Task]:
         generated = []
         exp_name = exp_cfg.get("name", "unnamed")
         problem_name = exp_cfg.get("problem")
         devices = exp_cfg.get("devices", [])
+        base_seed = exp_cfg.get("seed", None)
 
         base_params = problems_config.get(problem_name, {}).copy()
 
@@ -81,6 +89,9 @@ class TaskBuilder():
             for c_params in coupled_combinations:
                 final_params = {**base_params, **s_params, **c_params}
                 
+                if base_seed is not None:
+                    final_params["seed"] = self._params_seed(final_params)
+
                 for device in devices:
                     run_id = f"{run_counter:04d}"
                     task_dir = self.context / exp_name / device / run_id

@@ -15,8 +15,8 @@ class AlignmentProblem(BaseProblem):
 
         self.size_1 = self.config.get("sequence_1_size", 10)
         self.size_2 = self.config.get("sequence_2_size", 10)
-        self.sequence_1 = "".join(random.choice(self.alphabet) for _ in range(self.size_1))
-        self.sequence_2 = "".join(random.choice(self.alphabet) for _ in range(self.size_2))
+        self.sequence_1 = "".join(self.rng.choice(self.alphabet) for _ in range(self.size_1))
+        self.sequence_2 = "".join(self.rng.choice(self.alphabet) for _ in range(self.size_2))
 
     def inputs(self) -> dict:
         return {

@@ -12,8 +12,8 @@ class KnapsackProblem(BaseProblem):
         self.weights = []
         self.result = None
 
-        self.values = [random.randint(1, 100) for _ in range(self.items)]
-        self.weights = [random.randint(int(self.capacity/4), int(self.capacity/2)) for _ in range(self.items)]
+        self.values = [self.rng.randint(1, 100) for _ in range(self.items)]
+        self.weights = [self.rng.randint(int(self.capacity/4), int(self.capacity/2)) for _ in range(self.items)]
 
     def inputs(self) -> dict:
         return {

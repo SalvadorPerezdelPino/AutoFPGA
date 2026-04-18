@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import random
 
 class BaseProblem(ABC):
     """Interface for any problem"""
@@ -6,6 +7,8 @@ class BaseProblem(ABC):
     def __init__(self, config: dict, problem_id: int = None):
         self.config = config 
         self.id = problem_id
+        seed = config.get("seed", 1111)
+        self.rng = random.Random(seed)
 
     @abstractmethod
     def inputs(self) -> dict:
