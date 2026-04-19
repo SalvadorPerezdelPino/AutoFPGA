@@ -64,19 +64,16 @@ class Visualizer:
             linewidth=2.5 
         )
 
-        for i in range(data.shape[0]):
-            x_val = data['plot_x'].iloc[i]
-            y_val = data[y_col].iloc[i]
-            
-            label = f"{y_val:g}"
-            
+        grouped = data.groupby(['device', 'plot_x'])[y_col].mean().reset_index()
+
+        for _, row in grouped.iterrows():
             ax.annotate(
-                label,                   
-                xy=(x_val, y_val),       
-                xytext=(0, 7),            
-                textcoords='offset points', 
-                ha='center',            
-                va='bottom',               
+                f"{row[y_col]:g}",
+                xy=(row['plot_x'], row[y_col]),
+                xytext=(0, 7),
+                textcoords='offset points',
+                ha='center',
+                va='bottom',
                 fontsize=9,
                 fontweight='semibold',
                 color='black'
