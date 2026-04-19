@@ -44,32 +44,6 @@ class AlignmentProblem(BaseProblem):
             "matrix_elements": self.size()
         }
 
-    #def save_inputs(self) -> None:
-    #    save_path = Path(self.store_dir) / f"input_{self.id}.txt"
-    #    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    #    with open(save_path, "w+") as file:
-    #        file.write(f"Match score: {self.match_score}\n")
-    #        file.write(f"Mismatch score: {self.mismatch_penalty}\n")
-    #        file.write(f"Gap penalty: {self.gap_penalty}\n")
-    #        file.write(f"Sequence 1: {self.sequence_1}\n")
-    #        file.write(f"Sequence 2: {self.sequence_2}\n")
-    #    #print(f"Input stored in {save_path}\n")
-
-    #def save_inputs_for_fpga(self) -> None:
-    #    save_path = Path(self.store_dir) / f"input_{self.id}.mem"
-    #    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    #    with open(save_path, "w+") as file:
-    #        file.write(f"{self.match_score & 0xFFFF:016b}\n")
-    #        file.write(f"{self.mismatch_penalty & 0xFFFF:016b}\n")
-    #        file.write(f"{self.gap_penalty & 0xFFFF:016b}\n")
-    #        file.write(f"{len(self.sequence_1):016b}\n")
-    #        file.write(f"{len(self.sequence_2):016b}\n")
-    #        for symbol in self.sequence_1:
-    #            file.write(f"{ord(symbol):016b}\n")
-    #        for symbol in self.sequence_2:
-    #            file.write(f"{ord(symbol):016b}\n")
-    #    #print(f"Input stored for FPGA in {save_path}\n")
-
     def solve(self) -> int:
         rows = len(self.sequence_1)
         columns = len(self.sequence_2)
@@ -89,20 +63,6 @@ class AlignmentProblem(BaseProblem):
                         scoring_matrix[i][j - 1] + self.gap_penalty)
         result = scoring_matrix[rows][columns]
         return result
-
-    #def save_result(self) -> None:
-    #    save_path = Path(self.store_dir) / f"expected_{self.id}.txt"
-    #    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    #    #with open(save_path, "w+") as file:
-    #        #file.write(f"Max score: {self.result}\n")
-    #    #print(f"Solution stored in {save_path}\n")
-
-    #def save_result_for_fpga(self) -> None:
-    #    save_path = Path(self.store_dir) / f"expected_{self.id}.mem"
-    #    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    #    #with open(save_path, "w+") as file:
-    #        #file.write(f"{self.result &0xFFFF:016b}\n")
-    #    #print(f"Solution stored for FPGA in {save_path}\n")
 
     def to_dict(self) -> dict:
         data = {
