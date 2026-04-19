@@ -99,7 +99,7 @@ class TaskBuilder():
 
                 for device in devices:
                     run_id = f"{run_counter:04d}"
-                    task_dir = self.context / exp_name / device / run_id
+                    task_dir = self.context / "raw" / device / run_id
                     
                     new_task = Task(
                         id=run_id,

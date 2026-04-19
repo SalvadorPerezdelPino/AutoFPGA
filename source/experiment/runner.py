@@ -20,47 +20,59 @@ class ExperimentRunner():
         self.verbose = verbose
         self.run_timestamp = run_timestamp or datetime.now().strftime("%Y-%m-%d_%H%M%S")
 
+    def _write_metadata(self, experiment_path, experiment):
+        metadata = {
+            "timestamp": self.run_timestamp,
+            "experiment": experiment["name"],
+            "config": self.config,
+        }
+        with open(experiment_path / "metadata.json", "w") as f:
+            json.dump(metadata, f, indent=2)
+
     def run(self):
         compiler = QuartusCompiler(verbose=self.verbose)
         timing_analyzer = TimingAnalyzer(verbose=self.verbose)
         simulator = QuartusSimulator(verbose=self.verbose)
         driver_factory = DriverFactory(self.config["devices"], compiler, timing_analyzer, simulator)
-        task_builder = TaskBuilder(Path(self.config["config"]["root_dir"]))
-        tasks = task_builder.create_tasks(self.config)
-        result_manager = ResultManager()
+        #task_builder = TaskBuilder(Path(self.config["config"]["root_dir"]))
+        root_dir = Path(self.config["config"]["root_dir"])
 
-        for task in tasks:
-            logger.info(f"Running {task.name} on {task.device_name}")
-            driver = driver_factory.get(task.device_name)
-            problem = ProblemFactory.get(task.problem_name, task.params)
+        for experiment in self.config["experiments"]:
+            experiment_path = root_dir / experiment["name"] / self.run_timestamp
+            experiment_path.mkdir(parents=True, exist_ok=True)
 
-            serializer = SerializerFactory.get(task.problem_name, task.params)
-            logger.info(f"Generating inputs for task {task.id} in path {task.output_dir}")
-            serializer.write(problem, task.output_dir)
+            self._write_metadata(experiment_path, experiment)
 
-            input_file_path = (task.output_dir / f"input.mem").resolve().as_posix()
-            hw_params = task.params.copy()
-            hw_params["input_file"] = input_file_path
-            
-            task.output_dir.mkdir(parents=True, exist_ok=True)
-            with open(task.output_dir / "params.json", "w") as file:
-                json.dump({"params": task.params}, file, indent=2)
+            task_builder = TaskBuilder(experiment_path)
+            single_exp_config = {**self.config, "experiments": [experiment]} # To avoid duplicated tasks
+            tasks = task_builder.create_tasks(single_exp_config)
+            result_manager = ResultManager()
 
-            driver.prepare_hardware(hw_params)
-            result = driver.run_simulation(task.output_dir)
 
-            result_manager.add(result)
+            for task in tasks:
+                logger.info(f"Running {task.name} on {task.device_name}")
+                driver = driver_factory.get(task.device_name)
+                problem = ProblemFactory.get(task.problem_name, task.params)
 
-        #experiment_path = Path(self.config["config"]["root_dir"]) / self.config["experiments"][0]["name"]
-        experiment_path = Path(self.config["config"]["root_dir"]) / self.config["experiments"][0]["name"] / self.run_timestamp
-        
-        summary_path = experiment_path / "summary_results.csv"
-        result_manager.save(summary_path)
+                serializer = SerializerFactory.get(task.problem_name, task.params)
+                logger.info(f"Generating inputs for task {task.id} in path {task.output_dir}")
+                serializer.write(problem, task.output_dir)
 
-        logger.info("Generating plots...")
-        master_df = result_manager.df
-        visualizer = Visualizer(master_df)
+                input_file_path = (task.output_dir / f"input.mem").resolve().as_posix()
+                hw_params = task.params.copy()
+                hw_params["input_file"] = input_file_path
+                
+                task.output_dir.mkdir(parents=True, exist_ok=True)
+                with open(task.output_dir / "params.json", "w") as file:
+                    json.dump({"params": task.params}, file, indent=2)
 
-        plots_dir = experiment_path / "plots"
+                driver.prepare_hardware(hw_params)
+                result = driver.run_simulation(task.output_dir)
 
-        visualizer.plot_performance_summary(plots_dir)
+                result_manager.add(result)
+
+            logger.info("Generating plots...")
+            derived_path = experiment_path / "derived"
+            result_manager.save(derived_path / "summary_results.csv")
+            visualizer = Visualizer(result_manager.df)
+            visualizer.plot_performance_summary(derived_path / "plots")
