@@ -43,11 +43,12 @@ class TaskBuilder():
         else:
             return [val]
         
-    def _params_seed(self, params: dict, base_seed: int, problem_name: str) -> int:
+    def _params_seed(self, params: dict, base_seed: int, problem_name: str, run_index: int) -> int:
         problem_class = ProblemFactory._problems[problem_name]
         size_keys = problem_class.SWEEP_PARAMS
         structural = {k: params[k] for k in size_keys if k in params}
         structural["base_seed"] = base_seed
+        structural["run_index"] = run_index
         digest = hashlib.md5(json.dumps(structural, sort_keys=True).encode()).hexdigest()
         return int(digest[:8], 16)
     
@@ -57,6 +58,7 @@ class TaskBuilder():
         problem_name = exp_cfg.get("problem")
         devices = exp_cfg.get("devices", [])
         base_seed = exp_cfg.get("seed", None)
+        n_instances = exp_cfg.get("n_instances", 1)
 
         base_params = problems_config.get(problem_name, {}).copy()
 
@@ -93,23 +95,26 @@ class TaskBuilder():
             for c_params in coupled_combinations:
                 final_params = {**base_params, **s_params, **c_params}
                 
-                if base_seed is not None:
-                    final_params["base_seed"] = base_seed
-                    final_params["seed"] = self._params_seed(final_params, base_seed, problem_name)
 
+                case_id = f"case_{run_counter:04d}"
                 for device in devices:
-                    run_id = f"{run_counter:04d}"
-                    task_dir = self.context / "raw" / device / run_id
-                    
-                    new_task = Task(
-                        id=run_id,
-                        name=exp_name,
-                        device_name=device,
-                        problem_name=problem_name,
-                        params=final_params,
-                        output_dir=task_dir
-                    )
-                    generated.append(new_task)
+                    for instance_index in range(n_instances):
+                        instance_params = final_params.copy()
+                        task_dir = self.context / "raw" / device / case_id / f"instance_{instance_index}"
+                        if base_seed is not None:
+                            instance_params["base_seed"] = base_seed
+                            instance_params["seed"] = self._params_seed(
+                                final_params, base_seed, problem_name, instance_index  # ← instance_index
+                            )
+                        new_task = Task(
+                            id=f"{case_id}_i{instance_index}",
+                            name=exp_name,
+                            device_name=device,
+                            problem_name=problem_name,
+                            params=instance_params,
+                            output_dir=task_dir
+                        )
+                        generated.append(new_task)
                 
                 run_counter += 1
 
