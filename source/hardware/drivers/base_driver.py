@@ -14,7 +14,7 @@ class DeviceDriver(ABC):
         self.compiler = compiler
 
     @abstractmethod
-    def prepare_hardware(self, device_name: str, params: dict):
+    def prepare_hardware(self, params: dict):
         pass
 
     @abstractmethod
