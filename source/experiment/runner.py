@@ -10,13 +10,15 @@ from analysis.visualizer import Visualizer
 from pathlib import Path
 import logging
 import json
+from datetime import datetime
 
 logger = logging.getLogger('Runner')
 
 class ExperimentRunner():
-    def __init__(self, config: dict, verbose: bool = False):
+    def __init__(self, config: dict, verbose: bool = False, run_timestamp = None):
         self.config = config
         self.verbose = verbose
+        self.run_timestamp = run_timestamp or datetime.now().strftime("%Y-%m-%d_%H%M%S")
 
     def run(self):
         compiler = QuartusCompiler(verbose=self.verbose)
@@ -49,7 +51,9 @@ class ExperimentRunner():
 
             result_manager.add(result)
 
-        experiment_path = Path(self.config["config"]["root_dir"]) / self.config["experiments"][0]["name"]
+        #experiment_path = Path(self.config["config"]["root_dir"]) / self.config["experiments"][0]["name"]
+        experiment_path = Path(self.config["config"]["root_dir"]) / self.config["experiments"][0]["name"] / self.run_timestamp
+        
         summary_path = experiment_path / "summary_results.csv"
         result_manager.save(summary_path)
 
