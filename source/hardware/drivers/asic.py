@@ -21,7 +21,7 @@ class ASICDriver(DeviceDriver):
 
     def prepare_hardware(self, params: dict) -> None:
         self.current_params = params
-        structural_params = {k: v for k, v in params.items() if k != "input_file"}
+        structural_params = {k: v for k, v in params.items() if k != "input_file" and k != "seed"}
         try:
             self._update_verilog_parameters(params)
         except FileNotFoundError as e:
@@ -133,7 +133,16 @@ class ASICDriver(DeviceDriver):
         
         try:
             df = pd.read_csv(results_path, decimal=',', sep=';')
-            if df.empty: return df
+            if df.empty: 
+                return df
+
+            if not self.current_params: # Recovery
+                params_path = results_path.parent / "params.json"
+                if params_path.exists():
+                    with open(params_path, "r") as f:
+                        self.current_params = json.load(f).get("params", {})
+                else:
+                    logger.warning(f"params.json not found at {results_path.parent}, params columns will be missing")
 
             df["device"] = self.name
             for param_name, param_value in self.current_params.items():

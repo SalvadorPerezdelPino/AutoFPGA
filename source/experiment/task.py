@@ -106,6 +106,7 @@ class TaskBuilder():
                             instance_params["seed"] = self._params_seed(
                                 final_params, base_seed, problem_name, instance_index  # ← instance_index
                             )
+                        instance_params["case_id"] = case_id
                         new_task = Task(
                             id=f"{case_id}_i{instance_index}",
                             name=exp_name,

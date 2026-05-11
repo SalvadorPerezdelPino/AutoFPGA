@@ -16,6 +16,7 @@ parser.add_argument('-e', '--experiment', action='store_true')
 parser.add_argument('-l', '--logging', default="./logging/latest.log")
 parser.add_argument('-p', '--plot')
 parser.add_argument('--csv')
+parser.add_argument('--baseline', default=None)
 args = parser.parse_args()
 
 start_timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
@@ -52,7 +53,7 @@ elif args.recover is not None:
 elif args.plot is not None:
     csv_path = Path(args.plot)
     plots_dir = csv_path.parent / "plots"
-    visualizer = Visualizer()
+    visualizer = Visualizer(baseline_device=args.baseline)
     visualizer.set_df_from_csv(args.plot)
     visualizer.plot_performance_summary(plots_dir)
 elif args.csv is not None:

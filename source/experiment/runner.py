@@ -95,6 +95,7 @@ class ExperimentRunner():
                 output_csv = task.output_dir / "output.csv"
                 if output_csv.exists():
                     logger.info(f"Task {task.id} already completed, loading existing result")
+                    driver.current_params = task.params
                     result = driver._parse_results(output_csv)
                     result_manager.add(result)
                     continue
